@@ -1,0 +1,46 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  // Enable server actions (enabled by default in Next.js 14+)
+  experimental: {
+    serverActions: {
+      // Allow server actions from the production domain
+      allowedOrigins: [
+        'localhost:3000',
+        'ai-resume-skill-gap-analyzer.vercel.app',
+      ],
+    },
+  },
+
+  // Empty turbopack config to use Turbopack (Next.js 16 default)
+  turbopack: {},
+
+  // Security headers for production
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
+  },
+};
+
+export default nextConfig;
