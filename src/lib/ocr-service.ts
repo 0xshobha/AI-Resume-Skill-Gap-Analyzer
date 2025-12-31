@@ -1,9 +1,10 @@
 'use client';
 
 import { isPDFFile, isImageFile } from './file-validation';
+import type { Worker } from 'tesseract.js';
 
 // Tesseract.js worker for OCR
-let tesseractWorker: Tesseract.Worker | null = null;
+let tesseractWorker: Worker | null = null;
 
 // Track if PDF.js has been configured
 let pdfjsConfigured = false;

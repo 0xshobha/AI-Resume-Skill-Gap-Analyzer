@@ -3,7 +3,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ResumeAnalysis } from './types';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+// Maximum text lengths to prevent excessive API costs
+const MAX_RESUME_LENGTH = 50000;
+const MAX_JOB_DESCRIPTION_LENGTH = 10000;
 
 /**
  * Analyze resume using Google Gemini API
@@ -12,14 +14,28 @@ export async function analyzeResume(
   extractedText: string,
   jobDescription?: string
 ): Promise<ResumeAnalysis> {
-  if (!GEMINI_API_KEY) {
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  console.log('GEMINI_API_KEY exists:', !!apiKey);
+  console.log('GEMINI_API_KEY length:', apiKey?.length || 0);
+
+  if (!apiKey) {
+    console.error('GEMINI_API_KEY is not set in environment variables');
     throw new Error('Gemini API key is not configured. Please set GEMINI_API_KEY in your environment variables.');
   }
 
-  const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+  // Validate and truncate inputs to prevent excessive API usage
+  if (!extractedText || extractedText.trim().length === 0) {
+    throw new Error('No resume text provided for analysis.');
+  }
+
+  const truncatedResumeText = extractedText.slice(0, MAX_RESUME_LENGTH);
+  const truncatedJobDescription = jobDescription?.slice(0, MAX_JOB_DESCRIPTION_LENGTH);
+
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-  const prompt = buildAnalysisPrompt(extractedText, jobDescription);
+  const prompt = buildAnalysisPrompt(truncatedResumeText, truncatedJobDescription);
 
   try {
     const result = await model.generateContent(prompt);
@@ -27,7 +43,7 @@ export async function analyzeResume(
     const text = response.text();
 
     // Parse the JSON response
-    const analysis = parseGeminiResponse(text, extractedText, jobDescription);
+    const analysis = parseGeminiResponse(text, truncatedResumeText, truncatedJobDescription);
     return analysis;
   } catch (error) {
     console.error('Gemini API error:', error);

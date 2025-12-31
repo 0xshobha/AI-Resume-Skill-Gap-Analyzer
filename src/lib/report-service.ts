@@ -213,8 +213,9 @@ export async function generatePDFReport(analysis: ResumeAnalysis): Promise<Blob>
 /**
  * Download the PDF report
  */
-export function downloadPDFReport(analysis: ResumeAnalysis, filename: string = 'resume-analysis.pdf') {
-  generatePDFReport(analysis).then((blob) => {
+export async function downloadPDFReport(analysis: ResumeAnalysis, filename: string = 'resume-analysis.pdf'): Promise<void> {
+  try {
+    const blob = await generatePDFReport(analysis);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -223,5 +224,8 @@ export function downloadPDFReport(analysis: ResumeAnalysis, filename: string = '
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  });
+  } catch (error) {
+    console.error('Failed to generate PDF report:', error);
+    throw new Error('Failed to download PDF report. Please try again.');
+  }
 }

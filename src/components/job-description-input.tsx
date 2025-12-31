@@ -39,8 +39,9 @@ export function JobDescriptionInput({
         id="job-description"
         placeholder="Paste the job description here to get personalized matching analysis and keyword suggestions..."
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value.slice(0, MAX_CHARS))}
         disabled={disabled}
+        maxLength={MAX_CHARS}
         className="min-h-[120px] resize-none"
       />
       <p className="text-xs text-muted-foreground">

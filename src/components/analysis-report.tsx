@@ -44,8 +44,19 @@ const sectionLabels = {
 };
 
 export function AnalysisReport({ analysis }: AnalysisReportProps) {
-  const handleDownload = () => {
-    downloadPDFReport(analysis, 'resume-analysis-report.pdf');
+  const [isDownloading, setIsDownloading] = React.useState(false);
+  const [downloadError, setDownloadError] = React.useState<string | null>(null);
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    setDownloadError(null);
+    try {
+      await downloadPDFReport(analysis, 'resume-analysis-report.pdf');
+    } catch (error) {
+      setDownloadError(error instanceof Error ? error.message : 'Failed to download report');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const getPriorityColor = (priority: 'high' | 'medium' | 'low') => {
@@ -83,10 +94,13 @@ export function AnalysisReport({ analysis }: AnalysisReportProps) {
           <p className="text-sm text-muted-foreground">
             Analyzed on {new Date(analysis.analyzedAt).toLocaleDateString()}
           </p>
+          {downloadError && (
+            <p className="text-sm text-destructive mt-1">{downloadError}</p>
+          )}
         </div>
-        <Button onClick={handleDownload} variant="outline">
+        <Button onClick={handleDownload} variant="outline" disabled={isDownloading}>
           <Download className="mr-2 h-4 w-4" />
-          Download PDF
+          {isDownloading ? 'Downloading...' : 'Download PDF'}
         </Button>
       </div>
 

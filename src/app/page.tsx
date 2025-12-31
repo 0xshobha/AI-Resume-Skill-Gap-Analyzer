@@ -16,7 +16,7 @@ import { AnalysisReport } from '@/components/analysis-report';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ResumeAnalysis, FileUploadState } from '@/lib/types';
-import { extractText } from '@/lib/ocr-service';
+import { extractText, cleanupOCR } from '@/lib/ocr-service';
 import { analyzeResume } from '@/lib/gemini-service';
 
 const features = [
@@ -50,6 +50,13 @@ export default function Home() {
   });
   const [jobDescription, setJobDescription] = React.useState('');
   const [analysis, setAnalysis] = React.useState<ResumeAnalysis | null>(null);
+
+  // Cleanup OCR worker on component unmount to prevent memory leaks
+  React.useEffect(() => {
+    return () => {
+      cleanupOCR();
+    };
+  }, []);
 
   const handleFileSelect = async (file: File) => {
     setUploadState({
